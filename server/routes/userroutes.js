@@ -9,8 +9,8 @@ router.post('/users',(req,res)=>{
   var body = lodash.pick(req.body,['email','password'])
   var user = new userModel(body)
   user.save()
-  .then((res)=>{
-    return res.generateAuthToken();
+  .then((result)=>{
+    return result.generateAuthToken();
   })
   .then((token)=>{
     res.header('x-auth',token).status(200).send(user)
