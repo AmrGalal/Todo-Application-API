@@ -5,6 +5,7 @@ const {userModel} = require('../models/user')
 const {authenticate} = require('../middleware/authenticate')
 var router = express.Router()
 
+//Sign up route
 router.post('/users',(req,res)=>{
   var body = lodash.pick(req.body,['email','password'])
   var user = new userModel(body)
