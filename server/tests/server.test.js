@@ -268,3 +268,25 @@ describe('POST /users/login',()=>{
     })
   })
 })
+describe('DELETE /users/me/token',()=>{
+  it('should remove the token upon logout',(done)=>{
+    var token = todoUsers[0].tokens[0].token
+    request(app).delete('/users/me/token')
+    .set('x-auth',token)
+    .expect((res)=>{
+      tokenReceived =res.headers['x-auth']
+      expect(tokenReceived).toNotExist();
+    })
+    .expect(200)
+    .end((err)=>{
+      if(err) return done(err);
+      userModel.findById(todoUsers[0]._id)
+      .then((results)=>{
+        expect(results.tokens.length).toBe(0);
+        done();
+      })
+      .catch((e)=> done(e))
+    })
+  })
+
+})
