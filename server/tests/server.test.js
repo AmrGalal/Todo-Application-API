@@ -218,3 +218,53 @@ describe('POST /users',()=>{
 
   })
 })
+describe('POST /users/login',()=>{
+  it('should return a 404 when email isn\'t valid',(done)=>{
+    request(app).post('/users/login')
+    .send({
+      email: 'test@test.com',
+      password: 'admin123'
+    })
+    .expect((res)=>{
+      token =res.headers['x-auth']
+      expect(token).toNotExist();
+    })
+    .expect(400)
+    .end(done)
+  })
+
+  it('should return a 404 when password isn\'t matching',(done)=>{
+    request(app).post('/users/login')
+    .send({
+      email: 'amr@example.com',
+      password: 'wrongPassword'
+    })
+    .expect((res)=>{
+      token =res.headers['x-auth']
+      expect(token).toNotExist();
+    })
+    .expect(400)
+    .end(done)
+  })
+
+  it('should return a 200 and a token when credentials are correct',(done)=>{
+    var email = todoUsers[1].email
+    var password = todoUsers[1].password
+    var token;
+    request(app).post('/users/login')
+    .send({email, password})
+    .expect((res)=>{
+      token =res.headers['x-auth']
+      expect(token).toExist();
+    })
+    .expect(200)
+    .end((err)=>{
+      if(err) return done(err);
+      userModel.findByToken(token)
+      .then((user)=>{
+        expect(user.email).toBe(email)
+        done();
+      })
+    })
+  })
+})
