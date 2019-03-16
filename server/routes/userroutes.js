@@ -1,5 +1,6 @@
 const express = require('express');
 const lodash = require('lodash');
+const bcrypt = require('bcryptjs');
 
 const {userModel} = require('../models/user')
 const {authenticate} = require('../middleware/authenticate')
@@ -15,6 +16,18 @@ router.post('/users',(req,res)=>{
   })
   .then((token)=>{
     res.header('x-auth',token).status(200).send(user)
+  })
+  .catch((e)=>res.status(400).send(e))
+})
+
+router.post('/users/login',(req,res)=>{
+  var body = lodash.pick(req.body,['email','password'])
+  userModel.findByCredentials(body.email,body.password)
+  .then((user)=>{
+    return user.generateAuthToken();
+  })
+ .then((token)=>{
+   res.header('x-auth',token).status(200).send()
   })
   .catch((e)=>res.status(400).send(e))
 })
