@@ -17,6 +17,7 @@ describe('POST /todos', () => {
     //supertest will convert the object to json
     request(app)
     .post('/todos')
+    .set('x-auth',todoUsers[0].tokens[0].token)
     .send({name})
     .expect(200)
     .expect((res)=>{
@@ -37,6 +38,7 @@ describe('POST /todos', () => {
       var notName = 'test string'
       request(app)
       .post('/todos')
+      .set('x-auth',todoUsers[0].tokens[0].token)
       .send({notName})
       .expect(400)
       .end((err,res)=>{
@@ -52,9 +54,11 @@ describe('POST /todos', () => {
 });
 describe('GET /todos',()=>{
   it('should get all todos',(done)=>{
-    request(app).get('/todos').expect(200)
+    request(app).get('/todos')
+    .set('x-auth',todoUsers[0].tokens[0].token)
+    .expect(200)
     .expect((res)=>{
-      expect(res.body.results.length).toBe(2)
+      expect(res.body.results.length).toBe(1)
     })
     .end(done)
   })
@@ -62,6 +66,7 @@ describe('GET /todos',()=>{
 describe('GET /todos/:passedId',()=>{
   it('should return a 200 with the right object when we pass a correct ID ',(done)=>{
     request(app).get(`/todos/${todoNotes[0]._id.toHexString()}`)
+    .set('x-auth',todoUsers[0].tokens[0].token)
     .expect(200)
     .expect((res)=>{
       expect(res.body.name).toBe(todoNotes[0].name)
@@ -70,16 +75,18 @@ describe('GET /todos/:passedId',()=>{
   })
   it('should return a 404 with a valid ID but not found in the db',(done)=>{
     var hexID = new ObjectID().toHexString();
-    request(app).get(`/todos/${hexID}`).expect(404).end(done)
+    request(app).get(`/todos/${hexID}`)
+    .set('x-auth',todoUsers[0].tokens[0].token).expect(404).end(done)
   })
   it('should return a 400 with a non-valid ID',(done)=>{
-    request(app).get(`/todos/123`).expect(400).end(done)
+    request(app).get(`/todos/123`).set('x-auth',todoUsers[0].tokens[0].token).expect(400).end(done)
   })
 })
 describe('DELETE /todos/:passedId',()=>{
   it('should return a 200 with the right object when we pass a correct ID ',(done)=>{
     var hexID = todoNotes[0]._id.toHexString()
     request(app).delete(`/todos/${hexID}`)
+    .set('x-auth',todoUsers[0].tokens[0].token)
     .expect(200)
     .expect((res)=>{
       expect(res.body.name).toBe(todoNotes[0].name)
@@ -96,17 +103,23 @@ describe('DELETE /todos/:passedId',()=>{
   })
   it('should return a 404 with a valid ID but not found in the db',(done)=>{
     var hexID = new ObjectID().toHexString();
-    request(app).delete(`/todos/${hexID}`).expect(404).end(done)
+    request(app).delete(`/todos/${hexID}`)
+    .set('x-auth',todoUsers[0].tokens[0].token)
+    .expect(404).end(done)
   })
   it('should return a 400 with a non-valid ID',(done)=>{
-    request(app).delete(`/todos/123`).expect(400).end(done)
+    request(app).delete(`/todos/123`)
+    .set('x-auth',todoUsers[0].tokens[0].token)
+    .expect(400).end(done)
   })
 })
 describe('PATCH /todos/:passedId', () => {
   it('should return 200 with valid id, set completed to true, change name, set time to completedAt', (done)=>{
     var hexID = todoNotes[1]._id.toHexString();
     var name = 'updates from the tester'
-    request(app).patch(`/todos/${hexID}`).send({name,completed:true,completedAt:1234})
+    request(app).patch(`/todos/${hexID}`)
+    .set('x-auth',todoUsers[1].tokens[0].token)
+    .send({name,completed:true,completedAt:1234})
     .expect(200)
     .expect((res)=>{
         expect(res.body.name).toBe(name)
@@ -126,11 +139,15 @@ describe('PATCH /todos/:passedId', () => {
   })
   it('should return a 200 with a valid ID, tick completed to false and set completedAt to null',(done)=>{
     var hexID = todoNotes[0]._id.toHexString();
-    request(app).patch(`/todos/${hexID}`).send({completed:false}).expect(200)
+    request(app).patch(`/todos/${hexID}`)
+    .set('x-auth',todoUsers[0].tokens[0].token)
+    .send({completed:false})
+    .expect(200)
     .expect((res)=>{
       expect(res.body.completed).toBe(false);
       expect(res.body.completedAt).toNotExist()
     })
+
     .end((err,res)=>{
       if(err) return done(err);
       todoModel.findById(hexID).then((res)=>{
@@ -144,11 +161,15 @@ describe('PATCH /todos/:passedId', () => {
 
   it('should return a 404 with a valid ID but not found in the db',(done)=>{
     var hexID = new ObjectID().toHexString();
-    request(app).get(`/todos/${hexID}`).expect(404).end(done)
+    request(app).get(`/todos/${hexID}`)
+    .set('x-auth',todoUsers[0].tokens[0].token)
+    .expect(404).end(done)
   })
 
   it('should return a 400 with a non-valid ID',(done)=>{
-    request(app).get(`/todos/123`).expect(400).end(done)
+    request(app).get(`/todos/123`)
+    .set('x-auth',todoUsers[0].tokens[0].token)
+    .expect(400).end(done)
   })
 });
 describe('GET /users/me',()=>{
